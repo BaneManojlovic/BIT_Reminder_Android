@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Custom colors -->
+    <color name="background_blue_color">#001336</color>
+    <color name="button_blue_color">#6398FF</color>
+    <color name="textfield_blue_color">#192974</color>
+    <color name="tableview_cell_blue_color">#192948</color>
+    <color name="red_logo_color">#D73022</color>
+    <color name="light_grey_divider_color">#286E6E6E</color>
 </resources>
