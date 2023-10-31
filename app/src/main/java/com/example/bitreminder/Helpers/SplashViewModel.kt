@@ -36,7 +36,6 @@ class SplashViewModel: ViewModel() {
             }
         }
     }
-
     // Token Save
     private fun saveToken(context: Context) {
         viewModelScope.launch {
@@ -45,8 +44,7 @@ class SplashViewModel: ViewModel() {
             sharedPref.saveStringData("accessToken", accessToken)
         }
     }
-
-
+    // Get Token
     private fun getToken(context: Context): String? {
         val sharedPref = SharedPreferencesHelper(context)
         return sharedPref.getStringData("accessToken")

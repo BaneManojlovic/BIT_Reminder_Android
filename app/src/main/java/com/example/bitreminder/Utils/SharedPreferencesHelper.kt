@@ -3,6 +3,7 @@ package com.example.bitreminder.Utils
 import android.content.Context
 
 class SharedPreferencesHelper(private val context: Context) {
+
     companion object {
         private const val MY_PREF_KEY = "MY_PREF"
     }
