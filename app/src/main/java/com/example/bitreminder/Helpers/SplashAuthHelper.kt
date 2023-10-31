@@ -1,6 +1,8 @@
 package com.example.bitreminder.Helpers
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -12,11 +14,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,6 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bitreminder.AlbumsScreen.AlbumsScreenView
 import com.example.bitreminder.HomeScreen.HomeScreenView
 import com.example.bitreminder.LoginScreen.LoginScreenView
+import com.example.bitreminder.LoginScreen.LoginUserViewModel
+import com.example.bitreminder.LoginScreen.UserState
+import com.example.bitreminder.MainActivity
 import com.example.bitreminder.MapScreen.MapScreenView
 import com.example.bitreminder.PrivacyPolicyScreen.PrivacyPolicyScreen
 import com.example.bitreminder.R
@@ -43,21 +50,35 @@ sealed class Destination(val route: String) {
 
 
 @Composable
-fun SplashAuthHelper() {
-    // TODO: - Take data for User from user defaults
-    val userLoggedIn = true
+fun SplashAuthHelper(viewModel: SplashViewModel = viewModel()) {
+
+    // Take current context
+    val context = LocalContext.current
+    val userState by viewModel.userState
+
     // Set initial flow for the application
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = colorResource(R.color.background_blue_color)
     ) {
-        // TODO: - Implement user defaults
-        if (!userLoggedIn) {
-            val navController = rememberNavController()
-            HomeBottomNavigation(navController = navController)
-        } else {
-            val navController = rememberNavController()
-            NavigationAppHost(navController = navController)
+        viewModel.isUserLoggedIn(context)
+        // Flow by UserState
+        when (userState) {
+            is UserState.Loading -> {
+                println("Loading...")
+            }
+
+            is UserState.Error -> {
+                println("User is not logged in")
+                val navController = rememberNavController()
+                NavigationAppHost(navController = navController)
+            }
+
+            is UserState.Success -> {
+                println("User is logged in")
+                val navController = rememberNavController()
+                HomeBottomNavigation(navController = navController)
+            }
         }
     }
 }
@@ -66,6 +87,7 @@ fun SplashAuthHelper() {
 fun NavigationAppHost(navController: NavHostController) {
     // Take current context
     val context = LocalContext.current
+    // Set Navigation Host for authentification screen flow Splash -> Login -> Register -> Home
     NavHost(navController = navController, startDestination = "login") {
         composable(Destination.Login.route) { LoginScreenView(navController = navController) }
         composable(Destination.Registration.route) { RegistrationScreenView(navController = navController) }
@@ -150,7 +172,12 @@ fun HomeBottomNavigation(navController: NavHostController) {
         }
     }
     ) {
-        NavHost(navController = navController, startDestination = "home") {
+        // Set Navigation Host for authentification screen flow Splash -> Home -> Bottom Navigation
+        NavHost(navController = navController,
+            startDestination = "home",
+            exitTransition = { ExitTransition.None },
+            enterTransition = { EnterTransition.None }
+            ) {
             composable(Destination.Home.route) { HomeScreenView(navController = navController) }
             composable(Destination.Map.route) { MapScreenView() }
             composable(Destination.Albums.route) { AlbumsScreenView() }
