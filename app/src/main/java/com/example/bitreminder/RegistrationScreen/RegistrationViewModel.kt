@@ -1,58 +1,64 @@
-package com.example.bitreminder.LoginScreen
+package com.example.bitreminder.RegistrationScreen
 
 import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-//import io.github.jan.supabase.SupabaseClient
+import com.example.bitreminder.LoginScreen.UserState
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import kotlinx.coroutines.launch
+import io.github.jan.supabase.postgrest.postgrest
 import com.example.bitreminder.API.SupabaseClient
+import com.example.bitreminder.LoginScreen.User
+import com.example.bitreminder.LoginScreen.UserModel
 import com.example.bitreminder.Utils.SharedPreferencesHelper
 import io.github.jan.supabase.gotrue.gotrue
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.gotrue.user.UserInfo
+import io.ktor.http.contentRangeHeaderValue
 import kotlin.Exception
 
-class LoginUserViewModel: ViewModel() {
+class RegistrationViewModel: ViewModel() {
 
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
 
-    // Login
-    fun login(
+    // SignUp new user
+    fun signUp(
         context: Context,
+        userName: String,
         userEmail: String,
         userPassword: String
-    ): UserState {
+    ) {
         viewModelScope.launch {
             try {
-                SupabaseClient.client.gotrue.loginWith(Email) {
+                SupabaseClient.client.gotrue.signUpWith(Email) {
                     email = userEmail
                     password = userPassword
                 }
                 saveToken(context)
-                getUserFromDatabase(context)
-                _userState.value = UserState.Success("Login success")
+                val token = getToken(context) ?: ""
+                val userInfo = SupabaseClient.client.gotrue.retrieveUser(token)
+                // Save user in database on backend
+                saveUser(context, userInfo, userName)
+                _userState.value = UserState.Success("Register User Success")
             } catch (e: Exception) {
-                _userState.value = UserState.Error("Login error")
+                _userState.value = UserState.Error("Register Failure")
             }
         }
-        return _userState.value
     }
 
-    fun getUserFromDatabase(context: Context) {
-        val token = getToken(context) ?: ""
+    fun saveUser(context: Context, user: UserInfo, userName: String) {
         viewModelScope.launch {
             try {
-                val user = SupabaseClient.client.postgrest["profiles"].select {
-                    eq("id", token)
-                }.decodeSingle<User>()
+                _userState.value = UserState.Loading
+                val user = User(id = user.id, user_name = userName, user_email = user.email ?: "")
+                SupabaseClient.client.postgrest["profiles"].insert(user)
+                // Save user data in Shared Preferences
                 saveUserDataInSharedPref(context, user)
-                _userState.value = UserState.Success("Login success")
+                _userState.value = UserState.Success("Success...")
             } catch (e: Exception) {
-                _userState.value = UserState.Error("Login error")
+                _userState.value = UserState.Error("Error")
             }
         }
     }
@@ -77,27 +83,5 @@ class LoginUserViewModel: ViewModel() {
     private fun getToken(context: Context): String? {
         val sharedPref = SharedPreferencesHelper(context)
         return sharedPref.getStringData("accessToken")
-    }
-
-    // Check is user logged in
-    fun isUserLoggedIn(
-        context: Context
-    ) {
-        viewModelScope.launch {
-            try {
-                val token = getToken(context)
-                if (token.isNullOrEmpty()) {
-                    _userState.value = UserState.Error("User is not logged in")
-                } else {
-                    SupabaseClient.client.gotrue.retrieveUser(token)
-                    SupabaseClient.client.gotrue.refreshCurrentSession()
-                    saveToken(context)
-                    getUserFromDatabase(context)
-                    _userState.value = UserState.Success("User is alerady logged in")
-                }
-            } catch (e: Exception) {
-                _userState.value = UserState.Error("Error")
-            }
-        }
     }
 }

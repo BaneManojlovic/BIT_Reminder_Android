@@ -32,14 +32,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bitreminder.Helpers.Destination
+import com.example.bitreminder.LoginScreen.LoginUserViewModel
+import com.example.bitreminder.LoginScreen.UserState
 import com.example.bitreminder.R
 
 @Composable
-fun RegistrationScreenView(navController: NavController) {
+fun RegistrationScreenView(navController: NavController,
+                           viewModel: RegistrationViewModel = viewModel()) {
 
     val context = LocalContext.current
+    val userState by viewModel.userState
 
     var name by remember { mutableStateOf(TextFieldValue("")) }
     var email by remember { mutableStateOf(TextFieldValue("")) }
@@ -178,12 +183,31 @@ fun RegistrationScreenView(navController: NavController) {
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(R.color.button_blue_color)),
             onClick = {
-                navController.navigate(Destination.Home.route)
+                viewModel.signUp(
+                    context,
+                    userName = "Alen Alenovic",
+                    userEmail = "alenko1234@gmail.com",
+                    userPassword = "BakiMaki106"
+                )
             }
-
         ) {
             Text(text = "Register", color = Color.White)
         }
     }
 
+    // Flow by UserState
+    when (userState) {
+        is UserState.Loading -> {
+            println("Loading...")
+        }
+
+        is UserState.Error -> {
+            println("Error ...")
+        }
+
+        is UserState.Success -> {
+            println("Login Success...")
+            navController.navigate(Destination.Home.route)
+        }
+    }
 }

@@ -10,7 +10,9 @@ import com.example.bitreminder.Utils.SharedPreferencesHelper
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import com.example.bitreminder.API.SupabaseClient
+import com.example.bitreminder.LoginScreen.User
 import io.github.jan.supabase.gotrue.gotrue
+import io.github.jan.supabase.postgrest.postgrest
 
 class SplashViewModel: ViewModel() {
 
@@ -36,6 +38,7 @@ class SplashViewModel: ViewModel() {
             }
         }
     }
+
     // Token Save
     private fun saveToken(context: Context) {
         viewModelScope.launch {

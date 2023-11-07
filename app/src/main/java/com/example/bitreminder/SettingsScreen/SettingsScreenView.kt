@@ -18,6 +18,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import com.example.bitreminder.LoginScreen.UserState
 import com.example.bitreminder.MainActivity
 import com.example.bitreminder.R
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.runtime.*
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -54,9 +56,20 @@ fun SettingsScreenView(navController: NavController,
 
     val context = LocalContext.current
     val userState by viewModel.userState
+    var isActive = remember { mutableStateOf(false) }
     val openProfileDialog = remember { mutableStateOf(false) }
     val openLogoutUserDialog = remember { mutableStateOf(false) }
     val openDeleteAccountDialog = remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        if (!isActive.value) {
+            viewModel.getUserFromDatabase(context)
+            isActive.value = true
+        }
+        onDispose {
+            isActive.value = true
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -119,6 +132,7 @@ fun SettingsScreenView(navController: NavController,
                 .height(80.dp)
                 .clickable {
                     openProfileDialog.value = true
+//                    viewModel.getUserFromDatabase(context)
                 },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -145,7 +159,9 @@ fun SettingsScreenView(navController: NavController,
                 .padding(start = 12.dp, end = 12.dp)
                 .height(80.dp)
                 .clickable {
-                    Toast.makeText(context, "Go to Privacy Policy screen", Toast.LENGTH_SHORT).show()
+                    Toast
+                        .makeText(context, "Go to Privacy Policy screen", Toast.LENGTH_SHORT)
+                        .show()
                     navController.navigate(Destination.PrivacyPolicy.route)
                 },
                 verticalAlignment = Alignment.CenterVertically,
@@ -242,9 +258,10 @@ fun SettingsScreenView(navController: NavController,
     }
 
     if (openProfileDialog.value) {
+        val user = viewModel.getUserData(context)
         CustomAlertDialog(
-            title = "Petar Petrovic",
-            subtitle = "petarpetrovic@gmail.com",
+            title = user.user_name ?: "",
+            subtitle = user.user_email,
             onConfirm = {
                 openProfileDialog.value = false
             })

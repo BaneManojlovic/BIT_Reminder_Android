@@ -1,6 +1,8 @@
 package com.example.bitreminder.LoginScreen
 
-@kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UserModel(
     var id: String,
     var user_name: String?,
@@ -9,14 +11,14 @@ data class UserModel(
     var repeat_password: String?
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class User(
     var id: String,
     var user_name: String?,
-    var user_email: String?
+    var user_email: String
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class Album(
     var id: Int?,
     var album_name: String?,

@@ -120,7 +120,6 @@ fun LoginScreenView(navController: NavController,
         Button(
             colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(R.color.background_blue_color)),
             onClick = {
-//            Toast.makeText(context, "Go To register screen", Toast.LENGTH_SHORT).show()
                 navController.navigate(Destination.Registration.route)
             }) {
             Text(text = "Register new user",
