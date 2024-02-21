@@ -1,6 +1,17 @@
 package com.example.bitreminder.Helpers
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Instrumentation.ActivityResult
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
+import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +25,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -27,6 +44,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.bitreminder.AlbumsScreen.AlbumsScreenView
+import com.example.bitreminder.CustomComponents.CustomAlertDialog
+import com.example.bitreminder.CustomComponents.CustomCancelYesAlertDialog
+import com.example.bitreminder.CustomComponents.DialogWithTextField
 import com.example.bitreminder.HomeScreen.HomeScreenView
 import com.example.bitreminder.LoginScreen.LoginScreenView
 import com.example.bitreminder.LoginScreen.LoginUserViewModel
@@ -55,6 +75,7 @@ fun SplashAuthHelper(viewModel: SplashViewModel = viewModel()) {
     // Take current context
     val context = LocalContext.current
     val userState by viewModel.userState
+
 
     // Set initial flow for the application
     Surface(
@@ -97,7 +118,6 @@ fun NavigationAppHost(navController: NavHostController) {
             HomeBottomNavigation(navController = homeNavController)
         }
     }
-
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -105,6 +125,33 @@ fun NavigationAppHost(navController: NavHostController) {
 fun HomeBottomNavigation(navController: NavHostController) {
     // Take current context
     val context = LocalContext.current
+    var isLocationPermissionGranted = remember { mutableStateOf(false) }
+    var toOpenLocationSettingsScreen = remember { mutableStateOf(false) }
+
+    // Setting array of permissions
+    val permissions = arrayOf(
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION)
+    // Creating launcher
+    val launcherForMultiplePermissions = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissionsMap ->
+            val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
+            if (areGranted) {
+                isLocationPermissionGranted.value = true
+                toOpenLocationSettingsScreen.value = false
+                navController.navigate(Destination.Map.route) {
+                    popUpTo(Destination.Map.route)
+                    launchSingleTop = true
+                }
+            } else {
+                isLocationPermissionGranted.value = false
+                // Redirect to open Location Settings screen
+                toOpenLocationSettingsScreen.value = true
+            }
+        }
+    )
+
     // Set UI
     Scaffold(bottomBar = {
         BottomNavigation(
@@ -124,7 +171,7 @@ fun HomeBottomNavigation(navController: NavHostController) {
                         launchSingleTop = true
                     }
                 },
-                icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                icon = { Icon(painter = painterResource(id = R.drawable.baseline_home_32), contentDescription = null) },
                 label = { Text(text = Destination.Home.route) }
             )
             // setup Map Tab
@@ -133,10 +180,12 @@ fun HomeBottomNavigation(navController: NavHostController) {
                 unselectedContentColor = Color.Gray,
                 selectedContentColor = Color.White,
                 onClick = {
-                    navController.navigate(Destination.Map.route) {
-                        popUpTo(Destination.Map.route)
-                        launchSingleTop = true
-                    }
+                          checkAndRequestLocationPermissions(
+                              context,
+                              permissions,
+                              launcherForMultiplePermissions,
+                              navController
+                          )
                 },
                 icon = { Icon(painter = painterResource(id = R.drawable.ic_map_32), contentDescription = null) },
                 label = { Text(text = Destination.Map.route) }
@@ -166,7 +215,7 @@ fun HomeBottomNavigation(navController: NavHostController) {
                         launchSingleTop = true
                     }
                 },
-                icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                icon = { Icon(painterResource(id = R.drawable.baseline_settings_24), contentDescription = null) },
                 label = { Text(text = Destination.Settings.route) }
             )
         }
@@ -185,4 +234,37 @@ fun HomeBottomNavigation(navController: NavHostController) {
             composable(Destination.PrivacyPolicy.route) { PrivacyPolicyScreen() }
         }
     }
+
+    if (toOpenLocationSettingsScreen.value) {
+        CustomCancelYesAlertDialog(
+            title = "You Denied permission for Location",
+            subtitle = "Open Location Settings to allow giving location",
+            onConfirm = {
+                toOpenLocationSettingsScreen.value = false
+                val i = Intent(ACTION_LOCATION_SOURCE_SETTINGS)
+                context.startActivity(i)
+            },
+            onDissmiss = {
+                toOpenLocationSettingsScreen.value = false
+            })
+    }
 }
+
+fun checkAndRequestLocationPermissions(context: Context,
+                                       permissions: Array<String>,
+                                       launcherForMultiplePermissions: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>,
+                                       navController: NavHostController
+) {
+    if(permissions.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+        // Use location it is granted
+        navController.navigate(Destination.Map.route) {
+            popUpTo(Destination.Map.route)
+            launchSingleTop = true
+        }
+    } else {
+        // request location
+        launcherForMultiplePermissions.launch(permissions)
+    }
+}
+
