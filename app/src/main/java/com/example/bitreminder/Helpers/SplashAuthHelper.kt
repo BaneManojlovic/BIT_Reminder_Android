@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,7 +76,6 @@ fun SplashAuthHelper(viewModel: SplashViewModel = viewModel()) {
     // Take current context
     val context = LocalContext.current
     val userState by viewModel.userState
-
 
     // Set initial flow for the application
     Surface(

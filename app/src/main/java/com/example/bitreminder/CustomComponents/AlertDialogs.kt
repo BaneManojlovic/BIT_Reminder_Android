@@ -36,7 +36,7 @@ fun CustomAlertDialog(title: String, subtitle: String, onConfirm: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = { },
-        title = { Text(text = title) },
+        title = { Text(text = title, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
         text = { Text(text = subtitle) },
         confirmButton = {
             Button(
