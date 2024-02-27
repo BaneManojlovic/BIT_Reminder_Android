@@ -53,6 +53,7 @@ import com.example.bitreminder.LoginScreen.LoginScreenView
 import com.example.bitreminder.LoginScreen.LoginUserViewModel
 import com.example.bitreminder.LoginScreen.UserState
 import com.example.bitreminder.MainActivity
+import com.example.bitreminder.MapScreen.FavoriteLocationsView
 import com.example.bitreminder.MapScreen.MapScreenView
 import com.example.bitreminder.PrivacyPolicyScreen.PrivacyPolicyScreen
 import com.example.bitreminder.R
@@ -67,6 +68,7 @@ sealed class Destination(val route: String) {
     object Albums: Destination("Albums")
     object Settings: Destination("Settings")
     object PrivacyPolicy: Destination("privacy")
+    object FavoriteLocations: Destination("FavoriteLocations")
 }
 
 
@@ -228,10 +230,11 @@ fun HomeBottomNavigation(navController: NavHostController) {
             enterTransition = { EnterTransition.None }
             ) {
             composable(Destination.Home.route) { HomeScreenView(navController = navController) }
-            composable(Destination.Map.route) { MapScreenView() }
+            composable(Destination.Map.route) { entry -> MapScreenView(navController = navController, entry) }
             composable(Destination.Albums.route) { AlbumsScreenView() }
             composable(Destination.Settings.route) { SettingsScreenView(navController = navController) }
             composable(Destination.PrivacyPolicy.route) { PrivacyPolicyScreen() }
+            composable(Destination.FavoriteLocations.route) { FavoriteLocationsView(navController = navController) }
         }
     }
 

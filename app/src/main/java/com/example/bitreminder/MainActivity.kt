@@ -5,11 +5,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.currentCompositionLocalContext
@@ -31,19 +26,7 @@ import com.example.bitreminder.Helpers.ConnectionStatus
 import com.example.bitreminder.Helpers.SplashAuthHelper
 import com.example.bitreminder.Helpers.currentConnectivityStatus
 import com.example.bitreminder.Helpers.observeConnectivityAsFlow
-import com.example.bitreminder.LoginScreen.Album
-import com.example.bitreminder.LoginScreen.User
-import com.example.bitreminder.LoginScreen.UserModel
-import com.example.bitreminder.ui.theme.BITReminderTheme
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.gotrue.gotrue
-import io.github.jan.supabase.gotrue.providers.builtin.Email
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.launch
-import java.security.Provider
+
 
 class MainActivity : ComponentActivity() {
 
@@ -73,7 +56,6 @@ fun checkConnectivityStatus() {
     val isConnected = connection === ConnectionStatus.Available
 
     if (isConnected) {
-        Toast.makeText(context, "You have network!", Toast.LENGTH_SHORT).show()
         if (closeDialog) {
             openDialog = false
         }
