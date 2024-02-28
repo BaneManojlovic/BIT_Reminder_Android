@@ -204,7 +204,6 @@ fun CustomMap(
             colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(R.color.background_blue_color)),
             shape = CircleShape,
             onClick = {
-                Toast.makeText(context, "Open Favorite Locations screen", Toast.LENGTH_SHORT).show()
                 navController.navigate(Destination.FavoriteLocations.route)
             }) {
                 Icon(painter = painterResource(R.drawable.baseline_favorite_border_24),

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -107,6 +108,7 @@ fun HomeScreenView(navController: NavController) {
             .fillMaxWidth()
         ) {
             items(reminders) {
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(1f)

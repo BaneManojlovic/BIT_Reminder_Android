@@ -5,20 +5,26 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bitreminder.API.AuthManager
 import com.example.bitreminder.LoginScreen.UserState
 import com.example.bitreminder.Utils.SharedPreferencesHelper
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import com.example.bitreminder.API.SupabaseClient
 import com.example.bitreminder.LoginScreen.User
+import com.example.bitreminder.R
 import io.github.jan.supabase.gotrue.gotrue
 import io.github.jan.supabase.gotrue.gotrue
 import io.github.jan.supabase.postgrest.postgrest
+import java.security.MessageDigest
+
 
 class SettingsViewModel: ViewModel() {
 
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
+    var authManager = AuthManager()
+    val client = authManager.getClient()
 
     // Logout user
     fun logout(context: Context): UserState {
@@ -35,15 +41,30 @@ class SettingsViewModel: ViewModel() {
         return _userState.value
     }
 
+    fun generateUUIDFromUserUID(userUID: String): String {
+        val bytes = userUID.toByteArray()
+        val md5Digest = MessageDigest.getInstance("MD5")
+        val md5HashBytes = md5Digest.digest(bytes)
+        return md5HashBytes.joinToString("") { "%02x".format(it) }
+    }
+
     fun getUserFromDatabase(context: Context) {
-        val token = getToken(context) ?: ""
+        val auth = SupabaseClient.client.gotrue
         viewModelScope.launch {
             try {
-                val user = SupabaseClient.client.postgrest["profiles"].select {
-                    eq("id", token)
-                }.decodeSingle<User>()
-                saveUserDataInSharedPref(context, user)
-                _userState.value = UserState.Success("Login success")
+                val user = auth.currentUserOrNull()
+                if (user != null) {
+                    val myUser = User(
+                        id = user?.id ?: "",
+                        user_name = user.userMetadata.toString(),
+                        user_email = user?.email ?: "")
+
+                    val realUser = SupabaseClient.client.postgrest["profiles"].select { eq("id", user?.id ?: "") }.decodeSingle<User>()
+
+                    saveUserDataInSharedPref(context, realUser)
+
+                }
+//                _userState.value = UserState.Success("Login success")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Login error")
             }
