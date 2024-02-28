@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">BIT Reminder</string>
+    <string name="baseURL">https://ojiqsgkmccrovkpsbfvs.supabase.co</string>
+    <string name="baseApiKey">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qaXFzZ2ttY2Nyb3ZrcHNiZnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTUxOTY0MDEsImV4cCI6MjAxMDc3MjQwMX0.zeszkitC7aoHtc12BdALDjzaWbyYXdd2UuLhNi33-Gs</string>
+    <string name="google_maps_key">AIzaSyA_ZV4UC3FaWvmqyOLZslzPmKm69HZeHnM</string>
 </resources>
